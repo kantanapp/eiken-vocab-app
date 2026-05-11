@@ -15,8 +15,8 @@ import CardScreen from './src/screens/CardScreen';
 const NAV_APPS = [
   { emoji: '🎓', label: 'TOP',  url: 'https://kantanapp.github.io/eiken-portal/' },
   { emoji: '📚', label: '単語', url: null },
-  { emoji: '📝', label: '長文', url: 'https://kantanapp.github.io/eiken-mondai-app/' },
-  { emoji: '✍️', label: '要約', url: 'https://kantanapp.github.io/eiken-app/' },
+  { emoji: '📝', label: '長文', url: 'https://kantanapp.github.io/long-passage/' },
+  { emoji: '✍️', label: '要約', url: 'https://kantanapp.github.io/summary/' },
 ];
 
 function WebAppNav() {
