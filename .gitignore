@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+*.orig.*
+web-build/
+
+# Firebase 設定（機密情報）
+firebase.config.js
+
+# OS
+.DS_Store
+*.log

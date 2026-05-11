@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英検単語 管理画面</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: #0f0f0f; color: #f0f0f0;
+      min-height: 100vh; padding: 24px 16px;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 24px; color: #fff;
+      border-bottom: 1px solid #2a2a2a; padding-bottom: 12px; }
+    h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: #aaa; }
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
+      padding: 20px; margin-bottom: 24px; max-width: 640px; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+    label { font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 500; }
+    input, select { background: #111; border: 1px solid #333; border-radius: 8px;
+      color: #fff; font-size: 16px; padding: 10px 12px; outline: none; }
+    input:focus, select:focus { border-color: #4a9eff; }
+    select option { background: #222; }
+    .btn { width: 100%; padding: 13px; border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: #4a9eff; color: #fff; }
+    .status { margin-top: 10px; font-size: 14px; min-height: 20px; text-align: center; }
+    .status.ok { color: #4caf50; } .status.err { color: #ff6b6b; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { text-align: left; color: #666; font-weight: 500;
+      padding: 8px 10px; border-bottom: 1px solid #2a2a2a; }
+    tbody tr { border-bottom: 1px solid #1e1e1e; }
+    tbody tr:hover { background: #222; }
+    td { padding: 10px; vertical-align: middle; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px;
+      border-radius: 20px; font-weight: 600; }
+    .badge-1 { background: #1a3a5c; color: #4a9eff; }
+    .badge-2 { background: #1a3a2a; color: #4caf50; }
+    .del-btn { background: none; border: 1px solid #ff4d4d44; color: #ff4d4d;
+      border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .del-btn:hover { background: #ff4d4d22; }
+    .edit-btn { background: none; border: 1px solid #4a9eff44; color: #4a9eff;
+      border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+      margin-right: 4px; }
+    .edit-btn:hover { background: #4a9eff22; }
+    .save-btn { background: #4caf50; border: none; color: #fff;
+      border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+      margin-right: 4px; }
+    .cancel-btn { background: none; border: 1px solid #555; color: #aaa;
+      border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .row-input { font-size: 14px; padding: 6px 10px; width: 100%; }
+    .empty { color: #555; text-align: center; padding: 24px; }
+    textarea { background: #111; border: 1px solid #333; border-radius: 8px;
+      color: #fff; font-size: 14px; padding: 12px; outline: none;
+      width: 100%; resize: vertical; line-height: 1.7; font-family: monospace; }
+    textarea:focus { border-color: #4a9eff; }
+    .progress-bar { background: #222; border-radius: 6px; height: 8px;
+      margin-top: 10px; overflow: hidden; display: none; }
+    .progress-fill { background: #4a9eff; height: 100%; border-radius: 6px;
+      transition: width 0.2s; width: 0%; }
+    .btn-green { background: #4caf50; color: #fff; }
+    .btn-purple { background: #8a5cf6; color: #fff; }
+    .drop-zone { border: 2px dashed #333; border-radius: 10px; padding: 24px;
+      text-align: center; color: #666; cursor: pointer; transition: all 0.2s;
+      margin-bottom: 12px; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #8a5cf6; color: #aaa;
+      background: #1a1530; }
+    .drop-zone input[type="file"] { display: none; }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px; margin-bottom: 12px; }
+    .preview-item { position: relative; border-radius: 6px; overflow: hidden;
+      aspect-ratio: 1; background: #111; }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-item .remove { position: absolute; top: 2px; right: 2px;
+      background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%;
+      width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1;
+      display: flex; align-items: center; justify-content: center; }
+    .key-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .key-row input { flex: 1; font-family: monospace; font-size: 13px; }
+    .key-row .btn { width: auto; padding: 8px 14px; margin-top: 0; font-size: 13px; }
+    .key-saved { color: #4caf50; font-size: 12px; }
+    #tab-bar { display: flex; margin-bottom: 16px; border-bottom: 1px solid #2a2a2a; }
+    .tab-btn { background: none; border: none; color: #555; font-size: 15px;
+      font-weight: 600; padding: 10px 20px; cursor: pointer;
+      border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: #fff; border-bottom-color: #4a9eff; }
+  </style>
+</head>
+<body>
+
+<h1>英検単語 管理画面</h1>
+
+<!-- 画像から抽出（Gemini API） -->
+<div class="card">
+  <h2>画像から抽出（Gemini API・無料枠）</h2>
+
+  <!-- APIキー設定 -->
+  <label>Gemini APIキー <span id="keyStatus" class="key-saved"></span></label>
+  <div class="key-row">
+    <input type="password" id="geminiKey" placeholder="AIzaSy... （aistudio.google.com で取得）">
+    <button class="btn btn-primary" id="saveKeyBtn">保存</button>
+  </div>
+
+  <!-- 画像アップロード -->
+  <label>単語ページの画像（複数枚OK）</label>
+  <label for="imageInput" class="drop-zone" id="dropZone">
+    <input type="file" id="imageInput" accept="image/*" multiple>
+    <div>📷 クリックして選択 / ここにドラッグ&ドロップ</div>
+    <div style="font-size:12px;margin-top:6px;color:#555">PNG / JPG / WebP に対応</div>
+  </label>
+  <div class="preview-grid" id="previewGrid"></div>
+
+  <button class="btn btn-purple" id="extractBtn" disabled>画像から単語を抽出する</button>
+  <div class="progress-bar" id="extractProgressBar"><div class="progress-fill" id="extractProgressFill"></div></div>
+  <div class="status" id="extractStatus"></div>
+  <div style="font-size:12px;color:#666;margin-top:10px;line-height:1.6">
+    抽出結果は下の「一括追加」のテキストエリアに自動投入されます。<br>
+    内容を確認・修正してから「まとめて追加する」で保存してください。<br>
+    複数枚の場合は1枚ごとに7秒間隔を空けます（API制限回避）。429エラー時は自動リトライします。
+  </div>
+</div>
+
+<!-- 一括追加 -->
+<div class="card">
+  <h2>一括追加</h2>
+  <div class="form-group" style="margin-bottom:12px">
+    <label>グレード</label>
+    <select id="bulk-grade" style="max-width:200px">
+      <option value="grade1">英検1級</option>
+      <option value="grade2">英検2級</option>
+    </select>
+  </div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label>単語リスト（1行1単語）<br><span style="font-weight:normal;color:#666;font-size:11px">
+      ・例文なし: 「英単語　日本語訳」（空白区切り）<br>
+      ・例文あり: 「英単語[TAB]訳[TAB]例文[TAB]例文訳」（TAB区切り）— 画像から抽出した結果はこの形式で投入されます
+    </span></label>
+    <textarea id="bulkText" rows="10" placeholder="allegedly　伝えられるところによると&#10;extensively　広範に、大規模に&#10;solidify&#9;を固める、を強化する&#9;The government gradually solidified its control of the rebel territory.&#9;政府は反乱軍の領土の支配を徐々に固めた。"></textarea>
+  </div>
+  <button class="btn btn-green" id="bulkBtn">まとめて追加する</button>
+  <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="status" id="bulkStatus"></div>
+</div>
+
+<!-- 単語一覧 -->
+<div class="card">
+  <h2>登録済み単語</h2>
+  <div id="tab-bar">
+    <button class="tab-btn active" id="tab-grade1">英検1級</button>
+    <button class="tab-btn" id="tab-grade2">英検2級</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>順</th><th>英単語</th><th>日本語訳</th><th>例文 / 例文訳</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="wordList">
+      <tr><td colspan="5" class="empty">読み込み中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Firebase compat SDK（file://でも動作） -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // ── Firebase 設定 ──────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyARLIQDj-UinguYbILHDhc0UAq_cWXPu8E",
+    authDomain: "eiken-vocab2026423.firebaseapp.com",
+    projectId: "eiken-vocab2026423",
+    storageBucket: "eiken-vocab2026423.firebasestorage.app",
+    messagingSenderId: "949602417103",
+    appId: "1:949602417103:web:952cf6a511291312c9baba"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentGrade = 'grade1';
+  let unsubscribe = null;
+
+  // ── タブ切替 ──────────────────────────────────────────
+  document.getElementById('tab-grade1').addEventListener('click', () => switchTab('grade1'));
+  document.getElementById('tab-grade2').addEventListener('click', () => switchTab('grade2'));
+
+  function switchTab(grade) {
+    currentGrade = grade;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + grade).classList.add('active');
+    loadWords(grade);
+  }
+
+  // ── 単語一覧を購読 ────────────────────────────────────
+  function loadWords(grade) {
+    if (unsubscribe) unsubscribe();
+    unsubscribe = db.collection('words')
+      .where('grade', '==', grade)
+      .onSnapshot(snapshot => {
+        const words = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.order || 0) - (a.order || 0)); // 新しい順
+        renderList(words);
+      });
+  }
+
+  function renderList(words) {
+    const tbody = document.getElementById('wordList');
+    if (words.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">単語がありません</td></tr>';
+      return;
+    }
+    tbody.innerHTML = words.map(w => `
+      <tr data-id="${w.id}">
+        <td style="color:#555;width:40px">${w.order || '-'}</td>
+        <td class="cell-en" style="font-weight:600">${esc(w.english)}</td>
+        <td class="cell-ja" style="color:#ccc">${esc(w.japanese)}</td>
+        <td class="cell-ex" style="color:#999;font-size:13px;line-height:1.5">
+          ${w.example ? `<div>${esc(w.example)}</div>` : '<div style="color:#444">—</div>'}
+          ${w.exampleJa ? `<div style="color:#777">${esc(w.exampleJa)}</div>` : ''}
+        </td>
+        <td class="cell-actions" style="white-space:nowrap">
+          <button class="edit-btn" data-id="${w.id}">編集</button>
+          <button class="del-btn" data-id="${w.id}">削除</button>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteWord(btn.dataset.id));
+    });
+    tbody.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => startEdit(btn.dataset.id));
+    });
+  }
+
+  // ── 単語編集 ──────────────────────────────────────────
+  function startEdit(id) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (!row) return;
+    const cellEn = row.querySelector('.cell-en');
+    const cellJa = row.querySelector('.cell-ja');
+    const cellEx = row.querySelector('.cell-ex');
+    const cellActions = row.querySelector('.cell-actions');
+
+    const origEn = cellEn.textContent.trim();
+    const origJa = cellJa.textContent.trim();
+    // 例文セルは2行構成: 1行目=例文(英) 2行目=例文訳(日)
+    const exDivs = cellEx.querySelectorAll('div');
+    const origExEn = (exDivs[0] && exDivs[0].textContent !== '—') ? exDivs[0].textContent.trim() : '';
+    const origExJa = (exDivs[1] ? exDivs[1].textContent.trim() : '');
+
+    const attr = (s) => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+
+    cellEn.innerHTML = `<input class="row-input edit-en" value="${attr(origEn)}">`;
+    cellJa.innerHTML = `<input class="row-input edit-ja" value="${attr(origJa)}">`;
+    cellEx.innerHTML = `
+      <input class="row-input edit-ex-en" placeholder="例文(英)" value="${attr(origExEn)}" style="margin-bottom:4px">
+      <input class="row-input edit-ex-ja" placeholder="例文訳(日)" value="${attr(origExJa)}">
+    `;
+    cellActions.innerHTML = `
+      <button class="save-btn">保存</button>
+      <button class="cancel-btn">キャンセル</button>
+    `;
+
+    cellActions.querySelector('.save-btn').addEventListener('click', () => saveEdit(id));
+    cellActions.querySelector('.cancel-btn').addEventListener('click', () => cancelEdit(id, origEn, origJa, origExEn, origExJa));
+    cellEn.querySelector('input').focus();
+  }
+
+  function cancelEdit(id, origEn, origJa, origExEn, origExJa) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (!row) return;
+    row.querySelector('.cell-en').innerHTML = esc(origEn);
+    row.querySelector('.cell-ja').innerHTML = esc(origJa);
+    row.querySelector('.cell-ex').innerHTML = `
+      ${origExEn ? `<div>${esc(origExEn)}</div>` : '<div style="color:#444">—</div>'}
+      ${origExJa ? `<div style="color:#777">${esc(origExJa)}</div>` : ''}
+    `;
+    row.querySelector('.cell-actions').innerHTML = `
+      <button class="edit-btn" data-id="${id}">編集</button>
+      <button class="del-btn" data-id="${id}">削除</button>
+    `;
+    row.querySelector('.edit-btn').addEventListener('click', () => startEdit(id));
+    row.querySelector('.del-btn').addEventListener('click', () => deleteWord(id));
+  }
+
+  async function saveEdit(id) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (!row) return;
+    const english = row.querySelector('.edit-en').value.trim();
+    const japanese = row.querySelector('.edit-ja').value.trim();
+    const example = row.querySelector('.edit-ex-en').value.trim();
+    const exampleJa = row.querySelector('.edit-ex-ja').value.trim();
+    if (!english || !japanese) {
+      alert('英単語と日本語訳を入力してください');
+      return;
+    }
+    try {
+      // 空文字の例文は Firestore から削除する（以前あった値をクリアできるように）
+      const update = {
+        english, japanese,
+        example: example || firebase.firestore.FieldValue.delete(),
+        exampleJa: exampleJa || firebase.firestore.FieldValue.delete(),
+        updatedAt: new Date().toISOString(),
+      };
+      await db.collection('words').doc(id).update(update);
+    } catch (e) {
+      alert('更新エラー: ' + e.message);
+    }
+  }
+
+  // ── 単語削除 ──────────────────────────────────────────
+  async function deleteWord(id) {
+    if (!confirm('この単語を削除しますか？')) return;
+    try {
+      await db.collection('words').doc(id).delete();
+    } catch (e) {
+      alert('削除エラー: ' + e.message);
+    }
+  }
+
+  function esc(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── 一括追加 ──────────────────────────────────────────
+  document.getElementById('bulkBtn').addEventListener('click', bulkAdd);
+
+  async function bulkAdd() {
+    const text = document.getElementById('bulkText').value.trim();
+    const grade = document.getElementById('bulk-grade').value;
+    const status = document.getElementById('bulkStatus');
+    const btn = document.getElementById('bulkBtn');
+    const bar = document.getElementById('progressBar');
+    const fill = document.getElementById('progressFill');
+
+    if (!text) {
+      status.textContent = '単語リストを入力してください';
+      status.className = 'status err';
+      return;
+    }
+
+    // 1行ずつパース。新形式（TAB区切り4列：英単語\t訳\t例文\t例文訳）と
+    // 旧形式（空白区切り2列：英単語 訳）の両方に対応。
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const parsed = [];
+    const errors = [];
+
+    lines.forEach((line, i) => {
+      if (line.includes('\t')) {
+        // TAB区切り
+        const cols = line.split('\t').map(c => c.trim());
+        const english = cols[0] || '';
+        const japanese = cols[1] || '';
+        const example = cols[2] || '';
+        const exampleJa = cols[3] || '';
+        if (english && japanese) {
+          parsed.push({ english, japanese, example, exampleJa });
+        } else {
+          errors.push(`${i + 1}行目: "${line}"`);
+        }
+      } else {
+        // 空白区切り（旧形式・後方互換）
+        const match = line.match(/^(\S+)\s+(.+)$/);
+        if (match) {
+          parsed.push({
+            english: match[1].trim(),
+            japanese: match[2].trim(),
+            example: '',
+            exampleJa: '',
+          });
+        } else {
+          errors.push(`${i + 1}行目: "${line}"`);
+        }
+      }
+    });
+
+    if (parsed.length === 0) {
+      status.textContent = '正しい形式の行が見つかりませんでした';
+      status.className = 'status err';
+      return;
+    }
+
+    if (errors.length > 0) {
+      const ok = confirm(`${parsed.length}件追加できます。\n以下の行はスキップされます:\n${errors.join('\n')}\n\n続けますか？`);
+      if (!ok) return;
+    }
+
+    btn.disabled = true;
+    bar.style.display = 'block';
+    status.textContent = `0 / ${parsed.length} 件追加中...`;
+    status.className = 'status';
+
+    // 現在の最大orderを取得
+    const snap = await db.collection('words').where('grade', '==', grade).get();
+    const orders = snap.docs.map(d => d.data().order || 0);
+    let nextOrder = orders.length > 0 ? Math.max(...orders) + 1 : 1;
+
+    let success = 0;
+    for (let i = 0; i < parsed.length; i++) {
+      const { english, japanese, example, exampleJa } = parsed[i];
+      try {
+        const doc = {
+          english, japanese, grade,
+          order: nextOrder++,
+          isVisible: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        if (example) doc.example = example;
+        if (exampleJa) doc.exampleJa = exampleJa;
+        await db.collection('words').add(doc);
+        success++;
+        fill.style.width = `${Math.round((success / parsed.length) * 100)}%`;
+        status.textContent = `${success} / ${parsed.length} 件追加中...`;
+      } catch (e) {
+        console.error('追加エラー:', english, e);
+      }
+    }
+
+    document.getElementById('bulkText').value = '';
+    status.textContent = `✓ ${success}件追加しました！`;
+    status.className = 'status ok';
+    btn.disabled = false;
+
+    if (currentGrade !== grade) switchTab(grade);
+    setTimeout(() => { status.textContent = ''; bar.style.display = 'none'; fill.style.width = '0%'; }, 4000);
+  }
+
+  // ── 画像から抽出（Gemini API） ──────────────────────
+  const KEY_STORAGE = 'geminiApiKey';
+  const GEMINI_MODEL = 'gemini-2.0-flash';
+  const REQUEST_INTERVAL_MS = 7000; // RPM(10/分) を回避するため1リクエスト間隔
+  const MAX_RETRIES = 3;            // 429/5xx 時の自動リトライ回数
+  const EXTRACT_PROMPT = `この画像は英語の単語帳のページです。各見出し語について、以下の4項目を抽出してください。
+
+抽出する項目（1単語につき1行）:
+1. 見出し語（大きく目立つ英単語）
+2. 主要な日本語訳（メインの意味）
+3. 例文（英語の例文。1文のみ）
+4. 例文の日本語訳
+
+出力フォーマット:
+- 1行に「英単語<TAB>日本語訳<TAB>例文<TAB>例文訳」をタブ文字(\\t)で区切って書く
+- 例文が画像にない単語は「英単語<TAB>日本語訳」の2項目だけでOK（後ろのタブも省略）
+- 各行の末尾で改行
+- 派生語（名詞形・形容詞形など）・発音記号・単語番号・[= synonym] のような同義語注は無視
+- 日本語訳が複数ある場合は本に書かれている通り「、」で区切って1つにまとめる
+- 余計な説明、見出し、コードブロック記号(\`\`\`)は一切含めない
+- 出力は抽出した行のみ
+
+例:
+solidify\\tを固める、を強化する、固まる\\tThe government gradually solidified its control of the rebel territory.\\t政府は反乱軍の領土の支配を徐々に固めた。`;
+
+  const keyInput = document.getElementById('geminiKey');
+  const keyStatus = document.getElementById('keyStatus');
+  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const imageInput = document.getElementById('imageInput');
+  const dropZone = document.getElementById('dropZone');
+  const previewGrid = document.getElementById('previewGrid');
+  const extractBtn = document.getElementById('extractBtn');
+  const extractStatus = document.getElementById('extractStatus');
+  const extractBar = document.getElementById('extractProgressBar');
+  const extractFill = document.getElementById('extractProgressFill');
+
+  let pendingImages = []; // { name, dataUrl, base64, mimeType }
+
+  // APIキーの読み込み・保存
+  const savedKey = localStorage.getItem(KEY_STORAGE);
+  if (savedKey) {
+    keyInput.value = savedKey;
+    keyStatus.textContent = '✓ 保存済み';
+  }
+
+  saveKeyBtn.addEventListener('click', () => {
+    const v = keyInput.value.trim();
+    if (!v) {
+      localStorage.removeItem(KEY_STORAGE);
+      keyStatus.textContent = '';
+      alert('キーを削除しました');
+      return;
+    }
+    localStorage.setItem(KEY_STORAGE, v);
+    keyStatus.textContent = '✓ 保存済み';
+    setTimeout(() => { if (keyStatus.textContent === '✓ 保存済み') {} }, 100);
+  });
+
+  // ドラッグ&ドロップ
+  ['dragover', 'dragenter'].forEach(ev => {
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+  });
+  dropZone.addEventListener('drop', (e) => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    addImages(files);
+  });
+  imageInput.addEventListener('change', (e) => {
+    addImages(Array.from(e.target.files));
+    e.target.value = '';
+  });
+
+  function addImages(files) {
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        pendingImages.push({ name: file.name, dataUrl, base64, mimeType: file.type });
+        renderPreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPreviews() {
+    previewGrid.innerHTML = pendingImages.map((img, i) => `
+      <div class="preview-item">
+        <img src="${img.dataUrl}" alt="${esc(img.name)}">
+        <button class="remove" data-i="${i}" title="削除">×</button>
+      </div>
+    `).join('');
+    previewGrid.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingImages.splice(parseInt(btn.dataset.i), 1);
+        renderPreviews();
+      });
+    });
+    extractBtn.disabled = pendingImages.length === 0;
+  }
+
+  extractBtn.addEventListener('click', extractFromImages);
+
+  async function extractFromImages() {
+    const apiKey = localStorage.getItem(KEY_STORAGE);
+    if (!apiKey) {
+      extractStatus.textContent = 'APIキーを保存してください';
+      extractStatus.className = 'status err';
+      return;
+    }
+    if (pendingImages.length === 0) return;
+
+    extractBtn.disabled = true;
+    extractBar.style.display = 'block';
+    extractFill.style.width = '0%';
+    extractStatus.className = 'status';
+
+    const allLines = [];
+    let done = 0;
+    const errors = [];
+
+    for (let i = 0; i < pendingImages.length; i++) {
+      const img = pendingImages[i];
+      extractStatus.textContent = `${done} / ${pendingImages.length} 枚処理中...`;
+      try {
+        const text = await callGemini(
+          apiKey, img.base64, img.mimeType,
+          ({ attempt, max, waitMs, status }) => {
+            extractStatus.textContent = `${img.name}: ${status === 429 ? 'レート制限' : `エラー${status}`} → ${Math.round(waitMs / 1000)}秒後に自動リトライ (${attempt}/${max})`;
+          }
+        );
+        const cleaned = cleanGeminiOutput(text);
+        if (cleaned) allLines.push(cleaned);
+      } catch (e) {
+        console.error('抽出エラー:', img.name, e);
+        errors.push(`${img.name}: ${e.message}`);
+      }
+      done++;
+      extractFill.style.width = `${Math.round((done / pendingImages.length) * 100)}%`;
+
+      // 次の画像との間隔を空けて RPM (約10/分) を回避
+      if (i < pendingImages.length - 1) {
+        const remaining = pendingImages.length - i - 1;
+        extractStatus.textContent = `${done} / ${pendingImages.length} 完了。次の画像まで ${REQUEST_INTERVAL_MS / 1000}秒待機（残り${remaining}枚）...`;
+        await sleep(REQUEST_INTERVAL_MS);
+      }
+    }
+
+    // 既存の一括追加テキストエリアに投入（既存内容に追記）
+    const bulkArea = document.getElementById('bulkText');
+    const newText = allLines.join('\n');
+    bulkArea.value = bulkArea.value
+      ? bulkArea.value.trimEnd() + '\n' + newText
+      : newText;
+
+    pendingImages = [];
+    renderPreviews();
+
+    const lineCount = newText.split('\n').filter(l => l.trim()).length;
+    extractStatus.textContent = errors.length === 0
+      ? `✓ ${lineCount}語を抽出しました（下の一括追加で内容を確認してください）`
+      : `✓ ${lineCount}語を抽出（${errors.length}件エラー: ${errors.join(', ')}）`;
+    extractStatus.className = errors.length === 0 ? 'status ok' : 'status err';
+    extractBtn.disabled = false;
+    setTimeout(() => { extractBar.style.display = 'none'; extractFill.style.width = '0%'; }, 4000);
+
+    bulkArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  async function callGemini(apiKey, base64, mimeType, onRetry) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const body = {
+      contents: [{
+        parts: [
+          { text: EXTRACT_PROMPT },
+          { inline_data: { mime_type: mimeType || 'image/jpeg', data: base64 } }
+        ]
+      }],
+      generationConfig: { temperature: 0, maxOutputTokens: 4096 }
+    };
+
+    let lastErr = null;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) throw new Error('テキスト抽出失敗（レスポンス不正）');
+          return text;
+        }
+
+        const errText = await res.text();
+        const isRetryable = res.status === 429 || (res.status >= 500 && res.status < 600);
+        lastErr = new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
+
+        if (!isRetryable || attempt === MAX_RETRIES) throw lastErr;
+
+        // 429/5xx は指数バックオフでリトライ: 15秒, 30秒, 60秒
+        const waitMs = 15000 * Math.pow(2, attempt);
+        if (onRetry) onRetry({ attempt: attempt + 1, max: MAX_RETRIES, waitMs, status: res.status });
+        await sleep(waitMs);
+      } catch (e) {
+        // ネットワークエラーもリトライ対象
+        lastErr = e;
+        if (attempt === MAX_RETRIES) throw e;
+        const waitMs = 15000 * Math.pow(2, attempt);
+        if (onRetry) onRetry({ attempt: attempt + 1, max: MAX_RETRIES, waitMs, status: 0 });
+        await sleep(waitMs);
+      }
+    }
+    throw lastErr || new Error('Unknown error');
+  }
+
+  function cleanGeminiOutput(text) {
+    // コードブロック記号を除去
+    let t = text.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+    // 改行で行分割。タブ区切りはそのまま保持して下流のパーサーに渡す。
+    // 2列（旧形式）と4列（新形式）の両方に対応する。
+    return t.split('\n').map(l => l.trim()).filter(l => l).join('\n');
+  }
+
+  // 初期読み込み
+  loadWords('grade1');
+</script>
+</body>
+</html>
