@@ -17,6 +17,7 @@ const NAV_APPS = [
   { emoji: '📚', label: '単語', url: null },
   { emoji: '📝', label: '長文', url: 'https://kantanapp.github.io/long-passage/' },
   { emoji: '✍️', label: '要約', url: 'https://kantanapp.github.io/summary/' },
+  { emoji: '🔤', label: '単語クイズ', url: 'https://kantanapp.github.io/summary/vocab-quiz/' },
 ];
 
 function WebAppNav() {
