@@ -7,6 +7,7 @@ const KEYS = {
   hidden: (grade) => key('hiddenWordIds', grade),
   position: (grade) => key('lastPosition', grade),
   shuffle: (grade) => key('shuffleOrder', grade),
+  bookmarks: (grade) => key('bookmarkedWordIds', grade),
   settings: 'settings',
   todayCount: 'todayCount',
   todayDate: 'todayDate',
@@ -77,6 +78,36 @@ export const clearHiddenWords = async (grade) => {
   } catch (e) {
     console.error('clearHiddenWords error:', e);
   }
+};
+
+// ─── ブックマーク ────────────────────────────────────────
+
+export const getBookmarks = async (grade) => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.bookmarks(grade));
+    return data ? JSON.parse(data) : [];
+  } catch { return []; }
+};
+
+export const addBookmark = async (grade, wordId) => {
+  try {
+    const list = await getBookmarks(grade);
+    if (!list.includes(wordId)) {
+      await AsyncStorage.setItem(KEYS.bookmarks(grade), JSON.stringify([...list, wordId]));
+    }
+  } catch (e) { console.error('addBookmark error:', e); }
+};
+
+export const removeBookmark = async (grade, wordId) => {
+  try {
+    const list = await getBookmarks(grade);
+    await AsyncStorage.setItem(KEYS.bookmarks(grade), JSON.stringify(list.filter(id => id !== wordId)));
+  } catch (e) { console.error('removeBookmark error:', e); }
+};
+
+export const isBookmarked = async (grade, wordId) => {
+  const list = await getBookmarks(grade);
+  return list.includes(wordId);
 };
 
 // ─── シャッフル順 ────────────────────────────────────────
