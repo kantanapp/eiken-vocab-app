@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors } from './src/constants/colors';
 import CardScreen from './src/screens/CardScreen';
+import ProgressScreen from './src/screens/ProgressScreen';
 
 const NAV_APPS = [
   { emoji: '🎓', label: 'TOP',  url: 'https://kantanapp.github.io/eiken-portal/' },
@@ -85,17 +86,43 @@ const GRADES = [
   { key: 'grade2', label: '英検2級', sub: 'Grade 2' },
 ];
 
+const FEATURE_TABS = [
+  { key: 'card',     label: 'カード',   icon: '📚' },
+  { key: 'progress', label: '学習進捗', icon: '📊' },
+];
+
 export default function App() {
   const [selectedGrade, setSelectedGrade] = useState('grade1');
+  const [view, setView] = useState('card');
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <WebAppNav />
 
-      {/* ── カード画面 ── */}
+      {/* ── メイン画面 ── */}
       <View style={styles.screenContainer}>
-        <CardScreen key={selectedGrade} grade={selectedGrade} />
+        {view === 'card'     && <CardScreen key={selectedGrade} grade={selectedGrade} />}
+        {view === 'progress' && <ProgressScreen grade={selectedGrade} />}
+      </View>
+
+      {/* ── 機能タブ（下部・グレードタブの上） ── */}
+      <View style={styles.featureTabBar}>
+        {FEATURE_TABS.map((tab) => {
+          const isActive = view === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.featureTab, isActive && styles.featureTabActive]}
+              onPress={() => setView(tab.key)}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.featureTabText, isActive ? styles.featureTabTextActive : styles.featureTabTextInactive]}>
+                {tab.icon} {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* ── グレードタブ（下部） ── */}
@@ -135,6 +162,34 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+
+  // ── 機能タブバー（グレードタブの上） ──
+  featureTabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#2a2a2a',
+    backgroundColor: '#111111',
+  },
+  featureTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  featureTabActive: {
+    borderTopWidth: 2,
+    borderTopColor: colors.accent,
+  },
+  featureTabText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  featureTabTextActive: {
+    color: colors.accent,
+  },
+  featureTabTextInactive: {
+    color: '#444444',
   },
 
   // ── 下部タブバー ──
