@@ -21,27 +21,34 @@ const NAV_APPS = [
 ];
 
 function WebAppNav() {
+  const [menuOpen, setMenuOpen] = useState(false);
   if (Platform.OS !== 'web') return null;
+  const navigate = (url) => { window.location.href = url; };
   return (
     <View style={webNavStyles.bar}>
-      {NAV_APPS.map((item, i) => {
-        const isCurrent = item.url === null;
-        const isFirst = i === 0;
-        return (
-          <React.Fragment key={item.label}>
-            {i === 1 && <Text style={webNavStyles.sep}>|</Text>}
-            {isCurrent ? (
-              <View style={webNavStyles.current}>
-                <Text style={webNavStyles.currentText}>{item.emoji} {item.label}</Text>
-              </View>
-            ) : (
-              <TouchableOpacity style={[webNavStyles.item, isFirst && webNavStyles.itemFirst]} onPress={() => { if (Platform.OS === 'web') { window.location.href = item.url; } else { Linking.openURL(item.url); } }}>
-                <Text style={webNavStyles.itemText}>{item.emoji} {item.label}</Text>
-              </TouchableOpacity>
-            )}
-          </React.Fragment>
-        );
-      })}
+      <TouchableOpacity style={webNavStyles.hamburger} onPress={() => setMenuOpen(v => !v)}>
+        <Text style={webNavStyles.hamburgerIcon}>{menuOpen ? '✕' : '☰'}</Text>
+      </TouchableOpacity>
+      {menuOpen && (
+        <>
+          <TouchableOpacity style={webNavStyles.overlay} onPress={() => setMenuOpen(false)} />
+          <View style={webNavStyles.dropdown}>
+            {NAV_APPS.map((item) => {
+              const isCurrent = item.url === null;
+              return isCurrent ? (
+                <View key={item.label} style={webNavStyles.dropdownCurrent}>
+                  <Text style={webNavStyles.dropdownCurrentText}>{item.emoji} {item.label}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity key={item.label} style={webNavStyles.dropdownItem}
+                  onPress={() => { setMenuOpen(false); navigate(item.url); }}>
+                  <Text style={webNavStyles.dropdownItemText}>{item.emoji} {item.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -55,15 +62,21 @@ const webNavStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
     paddingHorizontal: 8,
-    gap: 2,
     zIndex: 9999,
   },
-  sep: { color: '#e2e8f0', fontSize: 16, marginHorizontal: 2 },
-  item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 9, borderRadius: 8 },
-  itemFirst: {},
-  itemText: { fontSize: 13, fontWeight: '600', color: '#64748b' },
-  current: { flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 9, borderRadius: 8, backgroundColor: '#eff6ff' },
-  currentText: { fontSize: 13, fontWeight: '700', color: '#3b82f6' },
+  hamburger: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
+  hamburgerIcon: { fontSize: 18, color: '#64748b' },
+  overlay: { position: 'absolute', top: 44, left: -8, right: -8, bottom: -9999, zIndex: 9998 },
+  dropdown: {
+    position: 'absolute', top: 44, left: 8, width: 180,
+    backgroundColor: '#fff', borderRadius: 12, zIndex: 9999,
+    borderWidth: 1, borderColor: '#e2e8f0',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12,
+  },
+  dropdownItem: { paddingVertical: 12, paddingHorizontal: 16 },
+  dropdownItemText: { fontSize: 14, color: '#1e293b' },
+  dropdownCurrent: { paddingVertical: 12, paddingHorizontal: 16, backgroundColor: '#eff6ff' },
+  dropdownCurrentText: { fontSize: 14, fontWeight: '700', color: '#3b82f6' },
 });
 
 // ─── グレード定義 ─────────────────────────────────────────
