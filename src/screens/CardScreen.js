@@ -61,6 +61,7 @@ const triggerHapticNative = (type = 'light') => {
   } catch (_) {}
 };
 import { colors } from '../constants/colors';
+import { addBookmark, removeBookmark, isBookmarked } from '../utils/storage';
 import { subscribeToWords } from '../services/firebase';
 import {
   getHiddenWords,
@@ -122,6 +123,7 @@ export default function CardScreen({ grade }) {
   const [isReloading, setIsReloading] = useState(false);
   const [firebaseError, setFirebaseError] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
 
   // ─── Refs ────────────────────────────────────────────────
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -156,6 +158,23 @@ export default function CardScreen({ grade }) {
   // Ref を常に最新の値に同期
   useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
   useEffect(() => { currentWordRef.current = currentWord; }, [currentWord]);
+
+  // ─── ブックマーク状態の読み込み ──────────────────────────
+  useEffect(() => {
+    if (!currentWord) return;
+    isBookmarked(grade, currentWord.id).then(setBookmarked);
+  }, [grade, currentWord]);
+
+  const toggleBookmark = async () => {
+    if (!currentWord) return;
+    if (bookmarked) {
+      await removeBookmark(grade, currentWord.id);
+      setBookmarked(false);
+    } else {
+      await addBookmark(grade, currentWord.id);
+      setBookmarked(true);
+    }
+  };
 
   // ─── 初期データ読み込み ───────────────────────────────────
   useEffect(() => {
@@ -738,6 +757,14 @@ export default function CardScreen({ grade }) {
             <Text style={[styles.soundToggleText, soundEnabled ? styles.soundToggleTextOn : styles.soundToggleTextOff]}>
               発音 {soundEnabled ? 'ON' : 'OFF'}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleBookmark}
+            style={styles.gearBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="ブックマーク"
+          >
+            <Text style={styles.gearText}>{bookmarked ? '🔖' : '🏷️'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMenuVisible(true)}

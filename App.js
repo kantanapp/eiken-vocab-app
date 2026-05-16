@@ -12,6 +12,7 @@ import {
 import { colors } from './src/constants/colors';
 import CardScreen from './src/screens/CardScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import BookmarkScreen from './src/screens/BookmarkScreen';
 
 const NAV_APPS = [
   { emoji: '🎓', label: 'TOP',  url: 'https://kantanapp.github.io/eiken-portal/' },
@@ -87,8 +88,9 @@ const GRADES = [
 ];
 
 const FEATURE_TABS = [
-  { key: 'card',     label: 'カード',   icon: '📚' },
-  { key: 'progress', label: '学習進捗', icon: '📊' },
+  { key: 'card',     label: 'カード',     icon: '📚' },
+  { key: 'progress', label: '学習進捗',   icon: '📊' },
+  { key: 'bookmark', label: 'ブックマーク', icon: '🔖' },
 ];
 
 export default function App() {
@@ -104,6 +106,7 @@ export default function App() {
       <View style={styles.screenContainer}>
         {view === 'card'     && <CardScreen key={selectedGrade} grade={selectedGrade} />}
         {view === 'progress' && <ProgressScreen grade={selectedGrade} />}
+        {view === 'bookmark' && <BookmarkScreen grade={selectedGrade} />}
       </View>
 
       {/* ── 機能タブ（下部・グレードタブの上） ── */}
